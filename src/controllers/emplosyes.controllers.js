@@ -11,6 +11,7 @@ export const getUsuarios = async (req, res) => {
   }
 };
 
+
 export const postUsuario = async (req, res) => {
   try {
     const pool = getPool(); // Obtén la conexión actual
