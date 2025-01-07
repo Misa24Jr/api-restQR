@@ -1,5 +1,4 @@
 import express from 'express';
-import employesRoutes from './routes/employes.routes.js';
 import indexRoutes from './routes/index.routes.js';
 import { connectToDatabase } from '../database/connectionBDD.js';
 import { PORT } from './config.js';
@@ -7,24 +6,36 @@ import { PORT } from './config.js';
 const app = express();
 app.use(express.json());
 
-// Rutas para gestionar la base de datos
-app.post("/limpiar-base-datos", (req, res) => {
-  connectToDatabase(null); // Elimina la conexión a la base de datos
-  res.send("Conexión eliminada. No hay base de datos configurada.");
-});
+// Diccionario con claves y valores de bases de datos
+const dbMapping = {
+  verde: "cristorey",
+  azul: "petion",
+};
 
 app.post("/configurar-base-datos", (req, res) => {
   const { dbName } = req.body;
-  if (!dbName) {
-    return res.status(400).send("El nombre de la base de datos es obligatorio.");
+
+  // Verificar si el nombre enviado existe en el diccionario
+  const actualDbName = dbMapping[dbName];
+  if (!actualDbName) {
+    return res.status(400).send("Nombre de base de datos no vÃ¡lido.");
   }
 
-  connectToDatabase(dbName); // Establece la conexión con el nombre de la base de datos
-  res.send("Conexión a la base de datos establecida con éxito.");
+  try {
+    connectToDatabase(actualDbName); // Conectar a la base de datos correspondiente
+    res.send(`ConexiÃ³n a la base de datos '${actualDbName}' establecida con Ã©xito.`);
+  } catch (error) {
+    console.error("Error al conectar a la base de datos:", error);
+    res.status(500).send("Error al conectar a la base de datos.");
+  }
+});
+
+app.post("/limpiar-base-datos", (req, res) => {
+  connectToDatabase(null); // Elimina la conexiÃ³n a la base de datos
+  res.send("ConexiÃ³n eliminada. No hay base de datos configurada.");
 });
 
 // Rutas de empleados
-app.use(employesRoutes);
 app.use(indexRoutes);
 
 app.use((req, res) => {
